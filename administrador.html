@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Familia 2026 · Amigo Secreto Navideño</title>
+<style>
+:root{--pine:#124936;--green:#207b54;--red:#aa3541;--gold:#d4a34b;--cream:#fff9ef;--ink:#20352b}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:var(--ink);background:linear-gradient(150deg,#f7f9f4,#e9f1ea)}
+header{background:radial-gradient(circle at 85% 15%,#377c59,transparent 45%),linear-gradient(130deg,#103d30,#176448);color:#fff;padding:45px 18px;text-align:center}
+header h1{font-size:clamp(30px,6vw,52px);margin:4px}header p{margin:8px auto;max-width:580px;color:#f2ead7}
+main{max-width:980px;margin:20px auto;padding:0 14px 40px}.card{background:#fff;border:1px solid #e7e9df;border-radius:23px;padding:23px;margin:16px 0;box-shadow:0 12px 35px #1d473113}
+h2{font-size:20px;color:var(--pine);margin:0 0 12px}label{font-size:14px;font-weight:650;display:block;margin:11px 0 5px}
+input,textarea{font:inherit;width:100%;padding:11px;border:1px solid #cdd9d0;border-radius:12px;background:#fff}textarea{min-height:74px}
+button{border:0;border-radius:13px;padding:13px 17px;background:var(--green);color:#fff;font-weight:700;cursor:pointer;font:inherit}button:hover{filter:brightness(.94)}button:disabled{opacity:.4;cursor:not-allowed}
+button.alt{background:#e7f1e9;color:var(--pine)}button.red{background:var(--red)}.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}
+.muted{font-size:13px;color:#607368}.participant{border:1px solid #e0e8df;border-radius:12px;padding:13px;margin:10px 0}.participant-head{display:flex;align-items:center;gap:8px}.participant-head input{flex:1}.hidden{display:none!important}
+.note{background:#f0f7f1;border-left:4px solid var(--green);padding:12px;border-radius:9px;margin:12px 0}.warn{background:#fff5e5;border-left-color:var(--gold)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.stat{background:#edf5ef;border-radius:11px;padding:14px}.stat b{display:block;font-size:27px;color:var(--pine)}
+.checks{display:flex;flex-wrap:wrap;gap:8px}.checks label{font-weight:400;margin:0;background:#f3f7f3;padding:8px;border-radius:9px}.checks input{width:auto}
+.result{border:2px dashed var(--gold);padding:18px;border-radius:14px;background:var(--cream);margin:12px 0;text-align:center}.result strong{font-size:25px;color:var(--pine)}
+table{width:100%;border-collapse:collapse;font-size:14px}td,th{text-align:left;border-bottom:1px solid #e5ece7;padding:10px;vertical-align:top}.scroll{overflow-x:auto}
+.pill{font-size:12px;color:#196545;background:#e7f3e9;padding:5px 8px;border-radius:20px}
+footer{text-align:center;font-size:12px;color:#697a6d;padding:16px}
+@media(max-width:650px){.row,.stats{grid-template-columns:1fr}.card{padding:15px}table{min-width:650px}}
+</style></head>
+<body>
+<header><img src="familia_2026_cuy.jpg" alt="Cuy navideño Familia 2026" style="width:min(100%,700px);aspect-ratio:3/2;object-fit:cover;object-position:center;border-radius:26px;box-shadow:0 12px 35px #09251b66"><h1>🎄 Familia 2026 · Amigo Secreto</h1><p>Organiza el sorteo; cada familiar escribe sus propios deseos desde su enlace privado.</p></header>
+<main>
+<section class="card"><h2>🎅 1. Configuración navideña</h2>
+<div class="row"><div><label>Nombre de la celebración</label><input id="event" value="Amigo Secreto Familia 2026"></div><div><label>Presupuesto del regalo (USD)</label><input id="budget" type="number" min="0" step=".01" value="20"></div></div>
+<div class="row"><div><label>Fecha de entrega</label><input id="date" type="date" value="2026-12-24"></div><div><label>Mensaje navideño</label><input id="greeting" value="¡Que la magia de la Navidad nos sorprenda!"></div></div>
+</section>
+<section class="card"><h2>👨‍👩‍👧‍👦 2. Participantes</h2><p class="muted">Registra nombre y WhatsApp. Cada familiar gestionará sus deseos desde su enlace. Los participantes y el sorteo se preparan en este navegador hasta publicarlos.</p>
+<div class="stats"><div class="stat"><b id="count">0</b>Participantes</div><div class="stat"><b id="pairs">0</b>Exclusiones</div><div class="stat"><b id="assigned">0</b>Asignaciones</div></div>
+<div id="people"></div><div class="actions"><button class="alt" id="add">＋ Añadir persona</button><button class="alt" id="examples">Cargar 20 ejemplos</button></div></section>
+<section class="card"><h2>🚫 3. Exclusiones de parejas y familiares</h2><p class="muted">Selecciona las personas que no pueden regalarse entre sí. La exclusión funciona en ambos sentidos.</p><div id="exclusions"></div></section>
+<section class="card"><h2>🎲 4. Sorteo navideño</h2>
+<div class="note"><b>Sincronización:</b> realiza el sorteo y luego publícalo una sola vez en Netlify. No cambies el sorteo después de enviar enlaces.</div>
+<div class="actions"><button id="draw">🎁 Realizar sorteo</button><button id="clear" class="red">Borrar sorteo</button><button id="backup" class="alt">Descargar respaldo</button><button id="restore" class="alt">Restaurar respaldo</button><input id="file" type="file" accept=".json,application/json" class="hidden"></div><div id="notice" role="status"></div></section>
+<section class="card hidden" id="results"><h2>🔐 5. Panel del administrador</h2><p class="muted">Este panel muestra todas las asignaciones. Evita compartir tu pantalla con participantes.</p>
+<div class="scroll"><table><thead><tr><th>Participante</th><th>Regala a</th><th>Deseos (consulta en línea)</th><th>WhatsApp</th></tr></thead><tbody id="table"></tbody></table></div>
+<h2 style="margin-top:24px">📱 Enlaces privados para cada participante</h2>
+<p class="muted">Los enlaces personales se crean en el servidor. Cada participante podrá editar sus deseos y ver solo los de su destinatario. <b>La primera publicación fija el sorteo:</b> no se puede reemplazar desde este panel.</p>
+<label>Contraseña de organizador (configurada en Netlify)</label><input id="adminPassword" type="password" autocomplete="off" placeholder="Contraseña ADMIN_PASSWORD"><div class="actions"><button id="serverStatus" class="alt">🔄 Consultar listas actualizadas</button></div><label>URL pública de la página de revelación</label>
+<input id="revealUrl" type="url" placeholder="https://tu-sitio.com/revelar_navidad.html">
+<div class="actions"><button id="makeLinks">🔐 Publicar sorteo y generar enlaces</button></div>
+<div id="linkNotice"></div>
+<div class="scroll"><table><thead><tr><th>Participante</th><th>Enlace personal</th><th>Enviar</th></tr></thead><tbody id="linksTable"></tbody></table></div>
+<h2 style="margin-top:24px">✨ Descubrimiento individual</h2><p class="muted">Si prefieres que cada persona descubra su resultado en tu dispositivo, entrégale el equipo, selecciona su nombre y deja que pulse «Revelar». No uses esta opción sin supervisión, ya que el administrador controla este navegador.</p>
+<label>Participante</label><select id="revealPerson" style="width:100%;padding:11px;border:1px solid #cdd9d0;border-radius:9px"></select><div class="actions"><button id="reveal">✨ Revelar mi amigo secreto</button><button id="hide" class="alt">Ocultar resultado</button></div><div id="one"></div>
+</section>
+<footer>🎄 Familia 2026 · Navidad en familia · Panel privado del organizador</footer>
+</main>
+<script>
+const $=id=>document.getElementById(id),KEY='amigo-secreto-navidad-v3';
+const uid=()=>crypto.randomUUID?.()||('p'+Date.now()+Math.random());
+let state={people:[],excluded:[],assignments:null,config:{event:'Amigo Secreto Familia 2026',budget:'20',date:'2026-12-24',greeting:'¡Que la magia de la Navidad nos sorprenda!'}};
+try{const saved=JSON.parse(localStorage.getItem(KEY));if(saved&&Array.isArray(saved.people))state=saved;}catch{}
+const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pair=(a,b)=>[a,b].sort().join('|');
+const persist=()=>localStorage.setItem(KEY,JSON.stringify(state));
+function syncConfig(){for(const k of ['event','budget','date','greeting'])state.config[k]=$(k).value;persist();}
+for(const k of ['event','budget','date','greeting']){$(k).value=state.config[k]??'';$(k).addEventListener('input',syncConfig);}
+function lock(){return !!state.assignments}
+function note(s,error=false){$('notice').innerHTML=`<div class="note ${error?'warn':''}">${esc(s)}</div>`}
+function add(name='',phone='',wish=''){if(lock())return note('Borra el sorteo antes de editar participantes.',true);if(state.people.length>=50)return note('El máximo es 50 personas.',true);state.people.push({id:uid(),name,phone,wish});persist();render();}
+function render(){
+ $('count').textContent=state.people.length;$('pairs').textContent=state.excluded.length;$('assigned').textContent=state.assignments?Object.keys(state.assignments).length:0;
+ $('people').innerHTML=state.people.map((p,i)=>`<div class="participant"><div class="participant-head"><input aria-label="Nombre" data-i="${i}" data-k="name" value="${esc(p.name)}" placeholder="Nombre"><button class="red" data-del="${i}" ${lock()?'disabled':''}>✕</button></div><div class="row"><div><label>WhatsApp (+código de país)</label><input data-i="${i}" data-k="phone" value="${esc(p.phone)}" placeholder="+593..."></div></div></div>`).join('');
+ $('exclusions').innerHTML=state.people.length<2?'<p class="muted">Agrega al menos dos participantes.</p>':state.people.map((p,i)=>`<div class="participant"><b>${esc(p.name||'Participante '+(i+1))}</b><div class="checks">${state.people.map((q,j)=>i===j?'':`<label><input type="checkbox" data-a="${p.id}" data-b="${q.id}" ${state.excluded.includes(pair(p.id,q.id))?'checked':''} ${lock()?'disabled':''}> ${esc(q.name||'Participante '+(j+1))}</label>`).join('')}</div></div>`).join('');
+ $('draw').disabled=lock();$('results').classList.toggle('hidden',!lock());
+ if(lock())renderResults();
+}
+$('people').addEventListener('input',e=>{const {i,k}=e.target.dataset;if(i===undefined)return;state.people[+i][k]=e.target.value;persist();if(k==='name')renderExclusionNames();if(lock())renderResults();});
+function renderExclusionNames(){[...$('exclusions').children].forEach((box,i)=>{let b=box.querySelector('b');if(b)b.textContent=state.people[i].name||`Participante ${i+1}`;box.querySelectorAll('label').forEach(label=>{const q=state.people.find(p=>p.id===label.querySelector('input').dataset.b);label.lastChild.textContent=' '+(q?.name||'Participante');});});}
+$('people').addEventListener('click',e=>{if(e.target.dataset.del===undefined)return;if(lock())return;const id=state.people[+e.target.dataset.del].id;state.people.splice(+e.target.dataset.del,1);state.excluded=state.excluded.filter(x=>!x.split('|').includes(id));persist();render();});
+$('exclusions').addEventListener('change',e=>{let {a,b}=e.target.dataset;if(!a||!b||lock())return;const k=pair(a,b);state.excluded=e.target.checked?[...new Set([...state.excluded,k])]:state.excluded.filter(x=>x!==k);persist();render();});
+$('add').onclick=()=>add();$('examples').onclick=()=>{if(lock())return note('Borra primero el sorteo.',true);if(state.people.length&&!confirm('¿Reemplazar la lista actual por 20 ejemplos?'))return;state.people=[];state.excluded=[];for(let i=1;i<=20;i++)state.people.push({id:uid(),name:'Participante '+i,phone:'',wish:''});persist();render();};
+function shuffle(a){for(let i=a.length-1;i>0;i--){let j=crypto.getRandomValues(new Uint32Array(1))[0]%(i+1);[a[i],a[j]]=[a[j],a[i]];}return a;}
+function draw(){
+ const p=state.people;if(p.length<3)return note('Agrega al menos tres participantes.',true);
+ if(p.some(x=>!x.name.trim()))return note('Completa todos los nombres.',true);
+ if(new Set(p.map(x=>x.name.trim().toLocaleLowerCase())).size!==p.length)return note('Distingue los nombres repetidos con un apellido o número.',true);
+ let assigned={},excluded=new Set(state.excluded);
+ function solve(left){if(!left.length)return true;let best,choices;
+  for(let x of left){let available=shuffle(p.filter(y=>y.id!==x.id&&!excluded.has(pair(x.id,y.id))&&!Object.values(assigned).includes(y.id)));if(!choices||available.length<choices.length){best=x;choices=available;}if(!available.length)return false;}
+  for(let y of choices){assigned[best.id]=y.id;if(solve(left.filter(x=>x.id!==best.id)))return true;delete assigned[best.id];}return false;}
+ if(!solve([...p]))return note('No existe una asignación posible con estas exclusiones. Ajusta las restricciones.',true);
+ if(!confirm('¿Confirmas el sorteo? Para modificarlo tendrás que borrarlo y volver a realizarlo.'))return;
+ state.assignments=assigned;localStorage.removeItem(KEY+'-links');personalLinks={};persist();render();showLinks();note('¡Sorteo realizado! Puedes preparar mensajes individuales para WhatsApp.');
+}
+$('draw').onclick=draw;
+$('clear').onclick=()=>{if(!lock())return;if(!confirm('¿Borrar todas las asignaciones? Este cambio no se puede deshacer sin respaldo.'))return;state.assignments=null;localStorage.removeItem(KEY+'-links');personalLinks={};persist();$('one').innerHTML='';render();note('Sorteo borrado.');};
+function renderResults(){
+ const map=Object.fromEntries(state.people.map(p=>[p.id,p]));
+ $('table').innerHTML=state.people.map(p=>{let target=map[state.assignments[p.id]],id=esc(p.id);return `<tr><td>${esc(p.name)}</td><td><b>${esc(target?.name)}</b></td><td>${'Consulta las listas actualizadas abajo'}</td><td><span class="pill">Usa enlace privado</span></td></tr>`;}).join('');
+ $('revealPerson').innerHTML=state.people.map(p=>`<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('');
+}
+function message(p,target){let c=state.config;return `🎄 ${c.event||'Amigo Secreto'} 🎁\n¡Hola, ${p.name}!\n✨ ${c.greeting||'Feliz Navidad'}\nTu amigo secreto es: ${target.name}\n🎁 Presupuesto: ${c.budget?'$'+c.budget+' USD':'por definir'}\n📅 Entrega: ${c.date||'por definir'}\n📝 Sus deseos: ${target.wish||'Sin deseos registrados'}\n🤫 ¡Guarda el secreto!`;}
+$('table').addEventListener('click',e=>{const id=e.target.dataset.send;if(!id)return;const p=state.people.find(x=>x.id===id),target=state.people.find(x=>x.id===state.assignments[id]);let phone=(p.phone||'').replace(/\D/g,'');let url=(phone?'https://wa.me/'+phone:'https://wa.me/')+'?text='+encodeURIComponent(message(p,target));window.open(url,'_blank','noopener');});
+$('reveal').onclick=()=>{if(!lock())return;const id=$('revealPerson').value,p=state.people.find(x=>x.id===id),target=state.people.find(x=>x.id===state.assignments[id]);$('one').innerHTML=`<div class="result">🎁 <div>Tu amigo secreto es</div><strong>${esc(target.name)}</strong><p>📝 ${esc(target.wish||'No ha registrado deseos')}</p><p>🎄 ¡Feliz Navidad!</p></div>`;};
+$('hide').onclick=()=>$('one').innerHTML='';
+$('backup').onclick=()=>{syncConfig();let blob=new Blob([JSON.stringify({version:3,...state},null,2)],{type:'application/json'});let a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='respaldo-amigo-secreto-navidad.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);};
+$('restore').onclick=()=>$('file').click();
+$('file').onchange=async e=>{let f=e.target.files[0];if(!f)return;try{let x=JSON.parse(await f.text());if(!Array.isArray(x.people)||!Array.isArray(x.excluded)||!x.config||typeof x.config!=='object')throw Error('Formato incorrecto');if(x.people.length>50||x.people.some(p=>!p.id||typeof p.name!=='string'))throw Error('Participantes inválidos');if(x.assignments&&typeof x.assignments!=='object')throw Error('Asignaciones inválidas');if(!confirm('¿Reemplazar todos los datos actuales con el respaldo?'))return;state={people:x.people,excluded:x.excluded,assignments:x.assignments||null,config:x.config};persist();for(let k of ['event','budget','date','greeting'])$(k).value=state.config[k]??'';render();note('Respaldo restaurado.');}catch(err){note('No se pudo restaurar: '+err.message,true);}e.target.value='';};
+render();
+
+// Enlaces y listas se almacenan en Netlify Blobs; la contraseña nunca se guarda en el navegador.
+let personalLinks={};
+const api=async body=>{const r=await fetch('/.netlify/functions/api',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});const d=await r.json();if(!r.ok)throw Error(d.error||'Error del servidor');return d};
+function linkMsg(p,link){return `🎄 ¡Hola, ${p.name}! 🎁\nTu Amigo Secreto de Familia 2026 ya está listo.\nAbre tu regalo y escribe tu lista de deseos aquí:\n${link}\n🔒 Tu enlace es personal. ¡No lo compartas!`}
+function showLinks(){
+ $('linksTable').innerHTML=state.people.map(p=>`<tr><td>${esc(p.name)}</td><td>${personalLinks[p.id]?'<span class="pill">Enlace listo</span>':'Pendiente'}</td><td><button class="alt" data-copy="${esc(p.id)}" ${personalLinks[p.id]?'':'disabled'}>Copiar enlace</button> <button class="alt" data-link="${esc(p.id)}" ${personalLinks[p.id]?'':'disabled'}>WhatsApp</button></td></tr>`).join('');
+}
+$('makeLinks').onclick=async()=>{
+ if(!state.assignments)return note('Primero realiza el sorteo.',true);
+ const password=$('adminPassword').value;
+ if(!password)return $('linkNotice').textContent='Introduce la contraseña del organizador.';
+ const url=$('revealUrl').value.trim();
+ if(!/^https:\/\/[^ ]+\/revelar_navidad\.html$/.test(url))return $('linkNotice').textContent='Introduce la URL HTTPS de revelar_navidad.html.';
+ try{
+  const data=await api({action:'admin-publish',password,people:state.people,assignments:state.assignments,config:state.config});
+  personalLinks=Object.fromEntries(data.people.map(p=>[p.id,url+'#t='+encodeURIComponent(p.linkToken)]));showLinks();
+  $('linkNotice').textContent='¡Sorteo publicado! Guarda y envía los enlaces personales. Las listas se sincronizan automáticamente.';
+ }catch(e){$('linkNotice').textContent=e.message}
+};
+$('serverStatus').onclick=async()=>{
+ try{const data=await api({action:'admin-status',password:$('adminPassword').value});
+  if(!data.published)return $('linkNotice').textContent='Todavía no hay sorteo publicado.';
+  const url=$('revealUrl').value.trim()||location.origin+'/revelar_navidad.html';
+  personalLinks=Object.fromEntries(data.people.map(p=>[p.id,url+'#t='+encodeURIComponent(p.linkToken)]));showLinks();
+  const rows=data.people.map(p=>`<tr><td>${esc(p.name)}</td><td>${esc(p.recipient)}</td><td>${esc(p.wish||'Sin deseos todavía')}</td></tr>`).join('');
+  $('linkNotice').innerHTML='<div class="note">Listas actuales en el servidor:</div><div class="scroll"><table><thead><tr><th>Participante</th><th>Regala a</th><th>Sus propios deseos</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+ }catch(e){$('linkNotice').textContent=e.message}
+};
+$('linksTable').addEventListener('click',async e=>{
+ const id=e.target.dataset.copy||e.target.dataset.link;if(!id||!personalLinks[id])return;
+ const p=state.people.find(x=>x.id===id);if(e.target.dataset.copy){try{await navigator.clipboard.writeText(personalLinks[id]);$('linkNotice').textContent='Enlace copiado de '+p.name}catch{$('linkNotice').textContent=personalLinks[id]}return}
+ const phone=(p.phone||'').replace(/\D/g,'');window.open((phone?'https://wa.me/'+phone:'https://wa.me/')+'?text='+encodeURIComponent(linkMsg(p,personalLinks[id])),'_blank','noopener');
+});
+$('revealUrl').value=location.origin+'/revelar_navidad.html';showLinks();
+</script></body></html>
